@@ -4,6 +4,8 @@ import (
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/rahul-024/fund-transfer-poc/api"
 	"github.com/rahul-024/fund-transfer-poc/config"
 	"github.com/rahul-024/fund-transfer-poc/util"
