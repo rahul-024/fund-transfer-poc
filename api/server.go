@@ -9,12 +9,12 @@ import (
 
 // Server serves HTTP requests for our banking service.
 type Server struct {
-	config util.Config
+	config util.ExtConfig
 	router *gin.Engine
 }
 
 // NewServer creates a new HTTP server and set up routing.
-func NewServer(config util.Config) (*Server, error) {
+func NewServer(config util.ExtConfig) (*Server, error) {
 
 	server := &Server{
 		config: config,

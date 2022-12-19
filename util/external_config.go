@@ -6,7 +6,7 @@ import (
 
 // Config stores all configuration of the application.
 // The values are read by viper from a config file or environment variable.
-type Config struct {
+type ExtConfig struct {
 	Environment       string `mapstructure:"ENVIRONMENT"`
 	DBDriver          string `mapstructure:"DB_DRIVER"`
 	DBSource          string `mapstructure:"DB_SOURCE"`
@@ -15,7 +15,7 @@ type Config struct {
 }
 
 // LoadConfig reads configuration from file or environment variables.
-func LoadConfig(path string) (config Config, err error) {
+func LoadConfig(path string) (config ExtConfig, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
