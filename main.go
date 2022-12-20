@@ -6,12 +6,27 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/rahul-024/fund-transfer-poc/api"
 	"github.com/rahul-024/fund-transfer-poc/config"
+	db "github.com/rahul-024/fund-transfer-poc/db/config"
 	"github.com/rahul-024/fund-transfer-poc/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+// @title           Fund transfer Service
+// @version         1.0
+// @description     A rest based service in Go using Gin framework.
+// @termsOfService  https://tos.iexceed.dev
+
+// @contact.name   Iexceed technology solutions
+// @contact.url    https://www.i-exceed.com/contact-us/
+// @contact.email  rahul.r@i-exceed.com
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /api/v1
 
 func main() {
 	extConfig, err := util.LoadConfig(".")
@@ -21,7 +36,7 @@ func main() {
 	if extConfig.Environment == "development" {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
-	config.ConnectDatabase(extConfig.DBSource)
+	db.ConnectDatabase(extConfig.DBSource)
 	runDBMigration(extConfig.MigrationURL, extConfig.DBSource)
 	runGinServer(extConfig)
 }
@@ -40,7 +55,7 @@ func runDBMigration(migrationURL string, dbSource string) {
 }
 
 func runGinServer(extConfig util.ExtConfig) {
-	server, err := api.NewServer(extConfig)
+	server, err := config.NewServer(extConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}

@@ -1,0 +1,16 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: rahul.r@i-exceed.com
+    name: Iexceed technology solutions
+    url: https://www.i-exceed.com/contact-us/
+  description: A rest based service in Go using Gin framework.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://tos.iexceed.dev
+  title: Fund transfer Service
+  version: "1.0"
+paths: {}
+swagger: "2.0"

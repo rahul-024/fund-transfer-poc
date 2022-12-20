@@ -1,0 +1,21 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "A rest based service in Go using Gin framework.",
+        "title": "Fund transfer Service",
+        "termsOfService": "https://tos.iexceed.dev",
+        "contact": {
+            "name": "Iexceed technology solutions",
+            "url": "https://www.i-exceed.com/contact-us/",
+            "email": "rahul.r@i-exceed.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {}
+}

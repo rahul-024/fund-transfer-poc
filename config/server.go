@@ -1,10 +1,14 @@
-package api
+package config
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator"
+	_ "github.com/rahul-024/fund-transfer-poc/docs"
+	"github.com/rahul-024/fund-transfer-poc/handlers"
 	"github.com/rahul-024/fund-transfer-poc/util"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Server serves HTTP requests for our banking service.
@@ -13,15 +17,13 @@ type Server struct {
 	router *gin.Engine
 }
 
-// NewServer creates a new HTTP server and set up routing.
 func NewServer(config util.ExtConfig) (*Server, error) {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("currency", util.ValidCurrency)
+	}
 
 	server := &Server{
 		config: config,
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("currency", util.ValidCurrency)
 	}
 
 	server.setupRouter()
@@ -30,15 +32,15 @@ func NewServer(config util.ExtConfig) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
-	router.POST("/accounts", server.createAccount)
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	v1 := router.Group("/api/v1")
+	{
+		v1.POST("/accounts", handlers.CreateAccount)
+
+	}
 	server.router = router
 }
 
-// Start runs the HTTP server on a specific address.
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
-}
-
-func errorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
 }
