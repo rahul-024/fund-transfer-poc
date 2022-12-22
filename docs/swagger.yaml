@@ -1,4 +1,15 @@
 basePath: /api/v1
+definitions:
+  handlers.createAccountRequest:
+    properties:
+      currency:
+        type: string
+      owner:
+        type: string
+    required:
+    - currency
+    - owner
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -12,5 +23,31 @@ info:
   termsOfService: https://tos.iexceed.dev
   title: Fund transfer Service
   version: "1.0"
-paths: {}
+paths:
+  /accounts:
+    post:
+      consumes:
+      - application/json
+      description: Takes a account JSON and store in DB. Return saved JSON.
+      parameters:
+      - description: Account JSON
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.createAccountRequest'
+        "400":
+          description: Bad invalid request
+          schema:
+            type: string
+      summary: Create a new account
+      tags:
+      - accounts
 swagger: "2.0"
