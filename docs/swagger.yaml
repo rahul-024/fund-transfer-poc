@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  CreateAccountRequest:
+  CreateAccountInput:
     properties:
       currency:
         type: string
@@ -88,14 +88,14 @@ paths:
         name: account
         required: true
         schema:
-          $ref: '#/definitions/CreateAccountRequest'
+          $ref: '#/definitions/CreateAccountInput'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/CreateAccountRequest'
+            $ref: '#/definitions/CreateAccountInput'
         "400":
           description: Bad/Invalid request
           schema:
@@ -108,6 +108,32 @@ paths:
       tags:
       - accounts
   /accounts/{id}:
+    delete:
+      description: Delete an account with the given id
+      parameters:
+      - description: delete account by id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad/Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Delete account by id
+      tags:
+      - accounts
     get:
       description: Returns the account whose id value matches the isbn.
       parameters:
@@ -132,6 +158,32 @@ paths:
           schema:
             type: string
       summary: Get single account by id
+      tags:
+      - accounts
+    put:
+      description: Update an account with the given id
+      parameters:
+      - description: update account by id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad/Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Update account by id
       tags:
       - accounts
 swagger: "2.0"

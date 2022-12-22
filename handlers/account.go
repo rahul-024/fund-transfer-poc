@@ -8,10 +8,15 @@ import (
 	"github.com/rahul-024/fund-transfer-poc/models"
 )
 
-type createAccountRequest struct {
+type CreateAccountInput struct {
 	Currency string `json:"currency" binding:"required"`
 	Owner    string `json:"owner" binding:"required"`
-} // @name CreateAccountRequest
+} // @name CreateAccountInput
+
+type UpdateAccountInput struct {
+	Currency string `json:"currency"`
+	Owner    string `json:"owner"`
+} // @name UpdateAccountInput
 
 // PostAccount             godoc
 //
@@ -20,14 +25,14 @@ type createAccountRequest struct {
 //	@Tags			accounts
 //	@Accept			json
 //	@Produce		json
-//	@Param			account	body		createAccountRequest	true	"Account JSON"
-//	@Success		201		{object}	createAccountRequest
+//	@Param			account	body		CreateAccountInput	true	"Account JSON"
+//	@Success		201		{object}	CreateAccountInput
 //	@Failure		400		{string}	string	"Bad/Invalid request"
 //	@Failure		500		{string}	string	"Resource not found"
 //	@Failure		500		{string}	string	"Internal server error"
 //	@Router			/accounts [post]
 func CreateAccount(ctx *gin.Context) {
-	var input createAccountRequest
+	var input CreateAccountInput
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -85,5 +90,59 @@ func GetAccountById(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
 		return
 	}
+	ctx.JSON(http.StatusOK, gin.H{"data": account})
+}
+
+// DeleteAccountById             godoc
+//
+//	@Summary		Delete account by id
+//	@Description	Delete an account with the given id
+//	@Tags			accounts
+//	@Produce		json
+//	@Param			id	path		int	true	"delete account by id"
+//	@Success		200	{string}	string
+//	@Failure		400	{string}	string	"Bad/Invalid request"
+//	@Failure		500	{string}	string	"Resource not found"
+//	@Failure		500	{string}	string	"Internal server error"
+//	@Router			/accounts/{id} [delete]
+func DeleteAccountById(ctx *gin.Context) {
+	var account models.Account
+	if err := db.DB.Where("id=?", ctx.Param("id")).First(&account).Error; err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+	db.DB.Delete(&account)
+	ctx.JSON(http.StatusOK, gin.H{"data": "Account with id " + ctx.Param("id") + " deleted successfully"})
+}
+
+// UpdateAccountById             godoc
+//
+//		@Summary		Update account by id
+//		@Description	Update an account with the given id
+//		@Tags			accounts
+//		@Produce		json
+//	    @Consume		json
+//		@Param			id	path		int	true	"update account by id"
+//		@Success		200	{object}	models.Account
+//		@Failure		400	{string}	string	"Bad/Invalid request"
+//		@Failure		500	{string}	string	"Resource not found"
+//		@Failure		500	{string}	string	"Internal server error"
+//		@Router			/accounts/{id} [put]
+func UpdateAccountById(ctx *gin.Context) {
+	var account models.Account
+	if err := db.DB.Where("id=?", ctx.Param("id")).First(&account).Error; err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+
+	// Validate input
+	var input UpdateAccountInput
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updateAccount := models.Account{Currency: input.Currency, Owner: input.Owner}
+	db.DB.Model(&account).Updates(&updateAccount)
 	ctx.JSON(http.StatusOK, gin.H{"data": account})
 }

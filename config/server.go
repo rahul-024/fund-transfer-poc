@@ -38,6 +38,9 @@ func (server *Server) setupRouter() {
 		v1.POST("/accounts", handlers.CreateAccount)
 		v1.GET("/accounts", handlers.ListAccounts)
 		v1.GET("/accounts/:id", handlers.GetAccountById)
+		v1.DELETE("/accounts/:id", handlers.DeleteAccountById)
+		v1.PUT("/accounts/:id", handlers.UpdateAccountById)
+
 	}
 	server.router = router
 }
