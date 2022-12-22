@@ -48,12 +48,13 @@ type listAccountRequest struct {
 //	@Summary		Get Accounts based on pageId and size
 //	@Description	Responds with the list of all accounts as JSON.
 //	@Tags			accounts
-//	@Accept			json
 //	@Produce		json
-//	@Success		200		{object}	listAccountRequest
-//	@Failure		400		{string}	string	"Bad/Invalid request"
-//	@Failure		500		{string}	string	"Resource not found"
-//	@Failure		500		{string}	string	"Internal server error"
+//	@Param			page_id	query	int	true	"Provide the pageId from where the records needs to be returned"
+//	@Param			page_size query	int	true	"provide the size of the page"
+//	@Success		200	{object}	listAccountRequest
+//	@Failure		400	{string}	string	"Bad/Invalid request"
+//	@Failure		500	{string}	string	"Resource not found"
+//	@Failure		500	{string}	string	"Internal server error"
 //	@Router			/accounts [get]
 func ListAccounts(ctx *gin.Context) {
 	var req listAccountRequest
@@ -64,4 +65,25 @@ func ListAccounts(ctx *gin.Context) {
 	}
 	db.DB.Limit(req.PageSize).Offset((req.PageID - 1) * req.PageSize).Find(&accounts)
 	ctx.JSON(http.StatusOK, accounts)
+}
+
+// GetAccountById             godoc
+//
+//	@Summary		Get single account by id
+//	@Description	Returns the account whose id value matches the isbn.
+//	@Tags			accounts
+//	@Produce		json
+//	@Param			id	path		int	true	"search account by id"
+//	@Success		200	{object}	models.Account
+//	@Failure		400	{string}	string	"Bad/Invalid request"
+//	@Failure		500	{string}	string	"Resource not found"
+//	@Failure		500	{string}	string	"Internal server error"
+//	@Router			/accounts/{id} [get]
+func GetAccountById(ctx *gin.Context) {
+	var account models.Account
+	if err := db.DB.Where("id=?", ctx.Param("id")).First(&account).Error; err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"data": account})
 }

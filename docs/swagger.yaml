@@ -23,7 +23,16 @@ definitions:
     - pageID
     - pageSize
     type: object
-host: localhost:8080
+  models.Account:
+    properties:
+      currency:
+        type: string
+      id:
+        type: integer
+      owner:
+        type: string
+    type: object
+host: localhost:8081
 info:
   contact:
     email: rahul.r@i-exceed.com
@@ -34,14 +43,23 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: https://tos.iexceed.dev
-  title: Fund transfer Service
+  title: Fund transfer service
   version: "1.0"
 paths:
   /accounts:
     get:
-      consumes:
-      - application/json
       description: Responds with the list of all accounts as JSON.
+      parameters:
+      - description: Provide the pageId from where the records needs to be returned
+        in: query
+        name: page_id
+        required: true
+        type: integer
+      - description: provide the size of the page
+        in: query
+        name: page_size
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -87,6 +105,33 @@ paths:
           schema:
             type: string
       summary: Create a new account
+      tags:
+      - accounts
+  /accounts/{id}:
+    get:
+      description: Returns the account whose id value matches the isbn.
+      parameters:
+      - description: search account by id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad/Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get single account by id
       tags:
       - accounts
 swagger: "2.0"

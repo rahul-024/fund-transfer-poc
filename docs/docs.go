@@ -28,9 +28,6 @@ const docTemplate = `{
         "/accounts": {
             "get": {
                 "description": "Responds with the list of all accounts as JSON.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -38,6 +35,22 @@ const docTemplate = `{
                     "accounts"
                 ],
                 "summary": "Get Accounts based on pageId and size",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Provide the pageId from where the records needs to be returned",
+                        "name": "page_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "provide the size of the page",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -103,6 +116,47 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/accounts/{id}": {
+            "get": {
+                "description": "Returns the account whose id value matches the isbn.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get single account by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "search account by id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Account"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad/Invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -138,6 +192,20 @@ const docTemplate = `{
                     "minimum": 5
                 }
             }
+        },
+        "models.Account": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -145,10 +213,10 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:8081",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "Fund transfer Service",
+	Title:            "Fund transfer service",
 	Description:      "A rest based service in Go using Gin framework.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

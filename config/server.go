@@ -37,7 +37,7 @@ func (server *Server) setupRouter() {
 	{
 		v1.POST("/accounts", handlers.CreateAccount)
 		v1.GET("/accounts", handlers.ListAccounts)
-
+		v1.GET("/accounts/:id", handlers.GetAccountById)
 	}
 	server.router = router
 }

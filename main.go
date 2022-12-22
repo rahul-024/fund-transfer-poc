@@ -13,7 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-//	@title			Fund transfer Service
+//	@title			Fund transfer service
 //	@version		1.0
 //	@description	A rest based service in Go using Gin framework.
 //	@termsOfService	https://tos.iexceed.dev
@@ -25,7 +25,7 @@ import (
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@host		localhost:8080
+//	@host		localhost:8081
 //	@BasePath	/api/v1
 
 func main() {
