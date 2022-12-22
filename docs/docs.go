@@ -26,6 +26,39 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/accounts": {
+            "get": {
+                "description": "Responds with the list of all accounts as JSON.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get Accounts based on pageId and size",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ListAccountRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad/Invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Takes a account JSON and store in DB. Return saved JSON.",
                 "consumes": [
@@ -45,7 +78,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.createAccountRequest"
+                            "$ref": "#/definitions/CreateAccountRequest"
                         }
                     }
                 ],
@@ -53,11 +86,17 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/handlers.createAccountRequest"
+                            "$ref": "#/definitions/CreateAccountRequest"
                         }
                     },
                     "400": {
-                        "description": "Bad invalid request",
+                        "description": "Bad/Invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "string"
                         }
@@ -67,7 +106,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.createAccountRequest": {
+        "CreateAccountRequest": {
             "type": "object",
             "required": [
                 "currency",
@@ -79,6 +118,24 @@ const docTemplate = `{
                 },
                 "owner": {
                     "type": "string"
+                }
+            }
+        },
+        "ListAccountRequest": {
+            "type": "object",
+            "required": [
+                "pageID",
+                "pageSize"
+            ],
+            "properties": {
+                "pageID": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "pageSize": {
+                    "type": "integer",
+                    "maximum": 10,
+                    "minimum": 5
                 }
             }
         }

@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  handlers.createAccountRequest:
+  CreateAccountRequest:
     properties:
       currency:
         type: string
@@ -9,6 +9,19 @@ definitions:
     required:
     - currency
     - owner
+    type: object
+  ListAccountRequest:
+    properties:
+      pageID:
+        minimum: 1
+        type: integer
+      pageSize:
+        maximum: 10
+        minimum: 5
+        type: integer
+    required:
+    - pageID
+    - pageSize
     type: object
 host: localhost:8080
 info:
@@ -25,6 +38,28 @@ info:
   version: "1.0"
 paths:
   /accounts:
+    get:
+      consumes:
+      - application/json
+      description: Responds with the list of all accounts as JSON.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ListAccountRequest'
+        "400":
+          description: Bad/Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get Accounts based on pageId and size
+      tags:
+      - accounts
     post:
       consumes:
       - application/json
@@ -35,16 +70,20 @@ paths:
         name: account
         required: true
         schema:
-          $ref: '#/definitions/handlers.createAccountRequest'
+          $ref: '#/definitions/CreateAccountRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/handlers.createAccountRequest'
+            $ref: '#/definitions/CreateAccountRequest'
         "400":
-          description: Bad invalid request
+          description: Bad/Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
           schema:
             type: string
       summary: Create a new account

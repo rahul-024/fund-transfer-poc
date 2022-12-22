@@ -36,6 +36,7 @@ func (server *Server) setupRouter() {
 	v1 := router.Group("/api/v1")
 	{
 		v1.POST("/accounts", handlers.CreateAccount)
+		v1.GET("/accounts", handlers.ListAccounts)
 
 	}
 	server.router = router
