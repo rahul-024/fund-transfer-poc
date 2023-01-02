@@ -1,17 +1,66 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/rahul-024/fund-transfer-poc/config"
 	db "github.com/rahul-024/fund-transfer-poc/db/config"
+	"github.com/rahul-024/fund-transfer-poc/models"
 	"github.com/rahul-024/fund-transfer-poc/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
+
+func init() {
+	profile := initProfile()
+	LoadConfig(profile)
+}
+
+func initProfile() string {
+	var profile string
+	profile = os.Getenv("GO_PROFILE")
+	if len(profile) <= 0 {
+		profile = "local"
+	}
+	fmt.Println("GOLANG_PROFILE: " + profile)
+	return profile
+}
+
+func LoadConfig(profile string) {
+	viper.AddConfigPath("./profiles")
+	viper.SetConfigName(profile)
+	viper.SetConfigType("yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+	err = viper.Unmarshal(&models.RuntimeConf)
+	if err != nil {
+		panic(err)
+	}
+
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		fmt.Println("Config file changed:", e.Name)
+		var err error
+		err = viper.ReadInConfig()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		err = viper.Unmarshal(&models.RuntimeConf)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	})
+	viper.WatchConfig()
+}
 
 //	@title			Fund transfer service
 //	@version		1.0
@@ -29,20 +78,17 @@ import (
 //	@BasePath	/api/v1
 
 func main() {
-	extConfig, err := util.LoadConfig(".")
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot load config")
-	}
-	if extConfig.Environment == "development" {
+	if models.RuntimeConf.GolangProfile == "local" {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
-	db.ConnectDatabase(extConfig.DBSource)
-	runDBMigration(extConfig.MigrationURL, extConfig.DBSource)
-	runGinServer(extConfig)
+	db.ConnectDatabase(&models.RuntimeConf)
+	runDBMigration(&models.RuntimeConf)
+	runGinServer(&models.RuntimeConf)
 }
 
-func runDBMigration(migrationURL string, dbSource string) {
-	migration, err := migrate.New(migrationURL, dbSource)
+func runDBMigration(runtimeConfig *models.RuntimeConfig) {
+	dsn := util.FormDsn(runtimeConfig)
+	migration, err := migrate.New(runtimeConfig.DbMigrationPath, dsn)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create new migrate instance")
 	}
@@ -54,13 +100,13 @@ func runDBMigration(migrationURL string, dbSource string) {
 	log.Info().Msg("db migrated successfully")
 }
 
-func runGinServer(extConfig util.ExtConfig) {
-	server, err := config.NewServer(extConfig)
+func runGinServer(runtimeConfig *models.RuntimeConfig) {
+	server, err := config.NewServer()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	err = server.Start(extConfig.HTTPServerAddress)
+	err = server.Start(runtimeConfig.Server.Port)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot start server")
 	}

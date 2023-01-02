@@ -13,19 +13,15 @@ import (
 
 // Server serves HTTP requests for our banking service.
 type Server struct {
-	config util.ExtConfig
 	router *gin.Engine
 }
 
-func NewServer(config util.ExtConfig) (*Server, error) {
+func NewServer() (*Server, error) {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", util.ValidCurrency)
 	}
 
-	server := &Server{
-		config: config,
-	}
-
+	server := &Server{}
 	server.setupRouter()
 	return server, nil
 }

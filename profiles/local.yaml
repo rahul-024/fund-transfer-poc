@@ -1,0 +1,11 @@
+golangProfile: "local"
+dbMigrationPath: "file://db/migration"
+datasource:
+  dbType: "postgres"
+  host: "localhost"
+  port: 5432
+  userName: "gouser"
+  password: "password"
+  dbName: "fund_transfer"
+server:
+  port: 8085
