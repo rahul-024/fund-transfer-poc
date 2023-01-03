@@ -1,7 +1,6 @@
-package db
+package config
 
 import (
-	"github.com/rahul-024/fund-transfer-poc/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -10,9 +9,9 @@ import (
 var DB *gorm.DB
 var err error
 
-func ConnectDatabase(runtimeConfig *models.RuntimeConfig) {
-	dsn := runtimeConfig.Datasource.Dsn
-	switch runtimeConfig.Datasource.DbType {
+func ConnectDatabase(appConfig *AppConfig) {
+	dsn := appConfig.Datasource.Dsn
+	switch appConfig.Datasource.DbType {
 	case "postgres":
 		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	case "mysql":

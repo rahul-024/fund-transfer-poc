@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	db "github.com/rahul-024/fund-transfer-poc/db/config"
+	db "github.com/rahul-024/fund-transfer-poc/config"
 	"github.com/rahul-024/fund-transfer-poc/models"
 )
 

@@ -9,8 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/rahul-024/fund-transfer-poc/config"
-	db "github.com/rahul-024/fund-transfer-poc/db/config"
-	"github.com/rahul-024/fund-transfer-poc/models"
+	"github.com/rahul-024/fund-transfer-poc/handlers"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -38,7 +37,7 @@ func LoadConfig(profile string) {
 	if err != nil {
 		panic(err)
 	}
-	err = viper.Unmarshal(&models.RuntimeConf)
+	err = viper.Unmarshal(&config.AppConf)
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +50,7 @@ func LoadConfig(profile string) {
 			fmt.Println(err)
 			return
 		}
-		err = viper.Unmarshal(&models.RuntimeConf)
+		err = viper.Unmarshal(&config.AppConf)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -76,13 +75,13 @@ func LoadConfig(profile string) {
 //	@BasePath	/api/v1
 
 func main() {
-	db.ConnectDatabase(&models.RuntimeConf)
-	runDBMigration(&models.RuntimeConf)
-	runGinServer(&models.RuntimeConf)
+	config.ConnectDatabase(&config.AppConf)
+	runDBMigration(&config.AppConf)
+	runGinServer(&config.AppConf)
 }
 
-func runDBMigration(runtimeConfig *models.RuntimeConfig) {
-	migration, err := migrate.New(runtimeConfig.DbMigrationPath, runtimeConfig.Datasource.Dsn)
+func runDBMigration(appConfig *config.AppConfig) {
+	migration, err := migrate.New(appConfig.DbMigrationPath, appConfig.Datasource.Dsn)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create new migrate instance")
 	}
@@ -94,13 +93,13 @@ func runDBMigration(runtimeConfig *models.RuntimeConfig) {
 	log.Info().Msg("db migrated successfully")
 }
 
-func runGinServer(runtimeConfig *models.RuntimeConfig) {
-	server, err := config.NewServer()
+func runGinServer(appConfig *config.AppConfig) {
+	server, err := handlers.NewServer()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	err = server.Start(runtimeConfig.Server.HttpServerAddress)
+	err = server.Start(appConfig.ServerConfig.HttpServerAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot start server")
 	}

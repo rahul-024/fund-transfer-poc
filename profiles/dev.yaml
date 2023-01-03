@@ -2,5 +2,5 @@ dbMigrationPath: "file://db/migration"
 datasource:
   dbType: "postgres"
   dsn: "postgresql://gouser:password@localhost:5432/fund_transfer?sslmode=disable"
-server:
+serverConfig:
   httpServerAddress: 0.0.0.0:8080

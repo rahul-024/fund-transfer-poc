@@ -1,11 +1,10 @@
-package config
+package handlers
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator"
 	_ "github.com/rahul-024/fund-transfer-poc/docs"
-	"github.com/rahul-024/fund-transfer-poc/handlers"
 	"github.com/rahul-024/fund-transfer-poc/util"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -31,11 +30,11 @@ func (server *Server) setupRouter() {
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1 := router.Group("/api/v1")
 	{
-		v1.POST("/accounts", handlers.CreateAccount)
-		v1.GET("/accounts", handlers.ListAccounts)
-		v1.GET("/accounts/:id", handlers.GetAccountById)
-		v1.DELETE("/accounts/:id", handlers.DeleteAccountById)
-		v1.PUT("/accounts/:id", handlers.UpdateAccountById)
+		v1.POST("/accounts", CreateAccount)
+		v1.GET("/accounts", ListAccounts)
+		v1.GET("/accounts/:id", GetAccountById)
+		v1.DELETE("/accounts/:id", DeleteAccountById)
+		v1.PUT("/accounts/:id", UpdateAccountById)
 
 	}
 	server.router = router
