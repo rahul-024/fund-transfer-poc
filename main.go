@@ -11,8 +11,6 @@ import (
 	"github.com/rahul-024/fund-transfer-poc/config"
 	db "github.com/rahul-024/fund-transfer-poc/db/config"
 	"github.com/rahul-024/fund-transfer-poc/models"
-	"github.com/rahul-024/fund-transfer-poc/util"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -78,17 +76,13 @@ func LoadConfig(profile string) {
 //	@BasePath	/api/v1
 
 func main() {
-	if models.RuntimeConf.GolangProfile == "local" {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	}
 	db.ConnectDatabase(&models.RuntimeConf)
 	runDBMigration(&models.RuntimeConf)
 	runGinServer(&models.RuntimeConf)
 }
 
 func runDBMigration(runtimeConfig *models.RuntimeConfig) {
-	dsn := util.FormDsn(runtimeConfig)
-	migration, err := migrate.New(runtimeConfig.DbMigrationPath, dsn)
+	migration, err := migrate.New(runtimeConfig.DbMigrationPath, runtimeConfig.Datasource.Dsn)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create new migrate instance")
 	}
@@ -106,7 +100,7 @@ func runGinServer(runtimeConfig *models.RuntimeConfig) {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
 
-	err = server.Start(runtimeConfig.Server.Port)
+	err = server.Start(runtimeConfig.Server.HttpServerAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot start server")
 	}
