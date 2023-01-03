@@ -22,11 +22,11 @@ func init() {
 
 func initProfile() string {
 	var profile string
-	profile = os.Getenv("GO_PROFILE")
+	profile = os.Getenv("ENV_PROFILE")
 	if len(profile) <= 0 {
 		profile = "local"
 	}
-	fmt.Println("GOLANG_PROFILE: " + profile)
+	fmt.Println("ENV_PROFILE: " + profile)
 	return profile
 }
 
