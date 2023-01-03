@@ -8,8 +8,10 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/pkg/errors"
 	"github.com/rahul-024/fund-transfer-poc/config"
 	"github.com/rahul-024/fund-transfer-poc/handlers"
+	logFactory "github.com/rahul-024/fund-transfer-poc/loggerfactory"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -77,6 +79,7 @@ func LoadConfig(profile string) {
 func main() {
 	config.ConnectDatabase(&config.AppConf)
 	runDBMigration(&config.AppConf)
+	loadLogger(config.AppConf.Log)
 	runGinServer(&config.AppConf)
 }
 
@@ -103,4 +106,14 @@ func runGinServer(appConfig *config.AppConfig) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot start server")
 	}
+}
+
+// loads the logger
+func loadLogger(lc config.LogConfig) error {
+	loggerType := lc.Code
+	err := logFactory.GetLogFactoryBuilder(loggerType).Build(&lc)
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
+	return nil
 }

@@ -4,3 +4,12 @@ datasource:
   dsn: "postgresql://gouser:password@localhost:5432/fund_transfer?sslmode=disable"
 serverConfig:
   httpServerAddress: 0.0.0.0:8080
+zapConfig: &zapConfig
+  code: zap
+  level: debug
+  enableCaller: true
+logrusConfig: &logrusConfig
+  code: logrus
+  level: debug
+  enableCaller: false
+logConfig: *zapConfig

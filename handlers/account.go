@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/rahul-024/fund-transfer-poc/config"
+	"github.com/rahul-024/fund-transfer-poc/logger"
 	"github.com/rahul-024/fund-transfer-poc/models"
 )
 
@@ -62,6 +63,7 @@ type listAccountRequest struct {
 //	@Failure		500	{string}	string	"Internal server error"
 //	@Router			/accounts [get]
 func ListAccounts(ctx *gin.Context) {
+	logger.Log.Info("In func ListAccounts()")
 	var req listAccountRequest
 	var accounts []models.Account
 	if err := ctx.ShouldBindQuery(&req); err != nil {
