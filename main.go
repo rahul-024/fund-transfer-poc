@@ -10,10 +10,10 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/pkg/errors"
 	"github.com/rahul-024/fund-transfer-poc/config"
-	"github.com/rahul-024/fund-transfer-poc/handlers"
 	logFactory "github.com/rahul-024/fund-transfer-poc/loggerfactory"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -77,10 +77,10 @@ func LoadConfig(profile string) {
 //	@BasePath	/api/v1
 
 func main() {
-	config.ConnectDatabase(&config.AppConf)
+	db := config.ConnectDatabase(&config.AppConf)
 	runDBMigration(&config.AppConf)
 	loadLogger(config.AppConf.Log)
-	runGinServer(&config.AppConf)
+	runGinServer(&config.AppConf, db)
 }
 
 func runDBMigration(appConfig *config.AppConfig) {
@@ -96,8 +96,8 @@ func runDBMigration(appConfig *config.AppConfig) {
 	log.Info().Msg("db migrated successfully")
 }
 
-func runGinServer(appConfig *config.AppConfig) {
-	server, err := handlers.NewServer()
+func runGinServer(appConfig *config.AppConfig, db *gorm.DB) {
+	server, err := config.NewServer(db)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}

@@ -9,7 +9,7 @@ import (
 var DB *gorm.DB
 var err error
 
-func ConnectDatabase(appConfig *AppConfig) {
+func ConnectDatabase(appConfig *AppConfig) (db *gorm.DB) {
 	dsn := appConfig.Datasource.Dsn
 	switch appConfig.Datasource.DbType {
 	case "postgres":
@@ -23,4 +23,5 @@ func ConnectDatabase(appConfig *AppConfig) {
 	if err != nil {
 		return
 	}
+	return DB
 }
