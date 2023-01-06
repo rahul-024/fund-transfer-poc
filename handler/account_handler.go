@@ -7,20 +7,28 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rahul-024/fund-transfer-poc/logger"
 	"github.com/rahul-024/fund-transfer-poc/models"
+	"github.com/rahul-024/fund-transfer-poc/models/request"
 	"github.com/rahul-024/fund-transfer-poc/service"
+	"gorm.io/gorm"
 )
 
-type AccountController interface {
+type AccountHandler interface {
 	CreateAccount(*gin.Context)
 	GetAccounts(*gin.Context)
 	GetAccountById(*gin.Context)
 	DeleteAccountById(*gin.Context)
 	UpdateAccountById(*gin.Context)
-	//TransferMoney(*gin.Context)
+	SaveTransfer(*gin.Context)
 }
 
-type accountController struct {
+type accountHandler struct {
 	accountService service.AccountService
+}
+
+func NewAccountHandler(s service.AccountService) AccountHandler {
+	return accountHandler{
+		accountService: s,
+	}
 }
 
 type CreateAccountInput struct {
@@ -28,23 +36,6 @@ type CreateAccountInput struct {
 	Owner    string  `json:"owner" binding:"required"`
 	Balance  float64 `json:"balance"`
 } // @name CreateAccountInput
-
-type UpdateAccountInput struct {
-	Currency string  `json:"currency"`
-	Owner    string  `json:"owner"`
-	Balance  float64 `json:"balance"`
-} // @name UpdateAccountInput
-
-type getAccountsRequest struct {
-	PageID   int `form:"page_id" binding:"required,min=1"`
-	PageSize int `form:"page_size" binding:"required,min=5,max=10"`
-} // @name ListAccountRequest
-
-func NewAccountController(s service.AccountService) AccountController {
-	return accountController{
-		accountService: s,
-	}
-}
 
 // PostAccount             godoc
 //
@@ -59,8 +50,8 @@ func NewAccountController(s service.AccountService) AccountController {
 //	@Failure		500		{string}	string	"Resource not found"
 //	@Failure		500		{string}	string	"Internal server error"
 //	@Router			/accounts [post]
-func (a accountController) CreateAccount(c *gin.Context) {
-	logger.Log.Info("In func() CreateAccount :: CONTROLLER LAYER")
+func (a accountHandler) CreateAccount(c *gin.Context) {
+	logger.Log.Info("In func() CreateAccount :: HANDLER LAYER")
 	var input CreateAccountInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -68,13 +59,18 @@ func (a accountController) CreateAccount(c *gin.Context) {
 	}
 
 	account := models.Account{Currency: input.Currency, Owner: input.Owner}
-	account, err := a.accountService.Save(account)
+	account, err := a.accountService.SaveAccount(account)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error while saving user"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": account})
 }
+
+type getAccountsRequest struct {
+	PageID   int `form:"page_id" binding:"required,min=1"`
+	PageSize int `form:"page_size" binding:"required,min=5,max=10"`
+} // @name ListAccountRequest
 
 // GetAccounts             godoc
 //
@@ -89,8 +85,8 @@ func (a accountController) CreateAccount(c *gin.Context) {
 //	@Failure		500	{string}	string	"Resource not found"
 //	@Failure		500	{string}	string	"Internal server error"
 //	@Router			/accounts [get]
-func (a accountController) GetAccounts(ctx *gin.Context) {
-	logger.Log.Info("In func() GetAccounts :: CONTROLLER LAYER")
+func (a accountHandler) GetAccounts(ctx *gin.Context) {
+	logger.Log.Info("In func() GetAccounts :: HANDLER LAYER")
 	var req getAccountsRequest
 	var accounts []models.Account
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -117,8 +113,8 @@ func (a accountController) GetAccounts(ctx *gin.Context) {
 //	@Failure		500	{string}	string	"Resource not found"
 //	@Failure		500	{string}	string	"Internal server error"
 //	@Router			/accounts/{id} [get]
-func (a accountController) GetAccountById(ctx *gin.Context) {
-	logger.Log.Info("In func() GetAccountById :: CONTROLLER LAYER")
+func (a accountHandler) GetAccountById(ctx *gin.Context) {
+	logger.Log.Info("In func() GetAccountById :: HANDLER LAYER")
 	var account models.Account
 	intVar, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -145,8 +141,8 @@ func (a accountController) GetAccountById(ctx *gin.Context) {
 //	@Failure		500	{string}	string	"Resource not found"
 //	@Failure		500	{string}	string	"Internal server error"
 //	@Router			/accounts/{id} [delete]
-func (a accountController) DeleteAccountById(ctx *gin.Context) {
-	logger.Log.Info("In func() DeleteAccountById :: CONTROLLER LAYER")
+func (a accountHandler) DeleteAccountById(ctx *gin.Context) {
+	logger.Log.Info("In func() DeleteAccountById :: HANDLER LAYER")
 	intVar, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Path param is not an int"})
@@ -159,6 +155,12 @@ func (a accountController) DeleteAccountById(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"data": "Account with id " + ctx.Param("id") + " deleted successfully"})
 }
+
+type UpdateAccountInput struct {
+	Currency string  `json:"currency"`
+	Owner    string  `json:"owner"`
+	Balance  float64 `json:"balance"`
+} // @name UpdateAccountInput
 
 // UpdateAccountById             godoc
 //
@@ -173,8 +175,8 @@ func (a accountController) DeleteAccountById(ctx *gin.Context) {
 //		@Failure		500	{string}	string	"Resource not found"
 //		@Failure		500	{string}	string	"Internal server error"
 //		@Router			/accounts/{id} [put]
-func (a accountController) UpdateAccountById(ctx *gin.Context) {
-	logger.Log.Info("In func() UpdateAccountById :: CONTROLLER LAYER")
+func (a accountHandler) UpdateAccountById(ctx *gin.Context) {
+	logger.Log.Info("In func() UpdateAccountById :: HANDLER LAYER")
 	intVar, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Path param is not an int"})
@@ -200,4 +202,44 @@ func (a accountController) UpdateAccountById(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"data": updatedAccount})
+}
+
+func (a accountHandler) SaveTransfer(ctx *gin.Context) {
+	logger.Log.Info("In func() SaveTransfer :: HANDLER LAYER")
+	txHandle := ctx.MustGet("db_trx").(*gorm.DB)
+
+	var input request.TransferRequest
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if _, err := a.accountService.WithTrx(txHandle).SaveTransfer(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error while saving transfer"})
+		txHandle.Rollback()
+		return
+	}
+
+	if err := a.accountService.WithTrx(txHandle).SaveEntry(&input, "DEBIT"); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error while saving entry for debited account"})
+		txHandle.Rollback()
+		return
+	}
+
+	if err := a.accountService.WithTrx(txHandle).SaveEntry(&input, "CREDIT"); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error while saving entry for credited account"})
+		txHandle.Rollback()
+		return
+	}
+
+	if err := a.accountService.WithTrx(txHandle).DecrementBalance(input.FromAccountID, input.Amount); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error while decrementing balance from sender account"})
+		txHandle.Rollback()
+		return
+	}
+
+	if err := a.accountService.WithTrx(txHandle).IncrementBalance(input.ToAccountID, input.Amount); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error while decrementing balance from sender account"})
+		txHandle.Rollback()
+		return
+	}
 }

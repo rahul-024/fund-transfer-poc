@@ -4,8 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator"
-	"github.com/rahul-024/fund-transfer-poc/controller"
 	_ "github.com/rahul-024/fund-transfer-poc/docs"
+	controller "github.com/rahul-024/fund-transfer-poc/handler"
+	"github.com/rahul-024/fund-transfer-poc/middleware"
 	"github.com/rahul-024/fund-transfer-poc/repository"
 	"github.com/rahul-024/fund-transfer-poc/service"
 	"github.com/rahul-024/fund-transfer-poc/util"
@@ -35,16 +36,21 @@ func (server *Server) setupRouter(db *gorm.DB) {
 	var (
 		accountRepository = repository.NewAccountRepository(db)
 		accountService    = service.NewAccountService(accountRepository)
-		accountController = controller.NewAccountController(accountService)
+		accountHandler    = controller.NewAccountHandler(accountService)
 	)
 
 	accounts := router.Group("/api/v1/accounts")
 	{
-		accounts.POST("/", accountController.CreateAccount)
-		accounts.GET("/", accountController.GetAccounts)
-		accounts.GET("/:id", accountController.GetAccountById)
-		accounts.DELETE("/:id", accountController.DeleteAccountById)
-		accounts.PUT("/:id", accountController.UpdateAccountById)
+		accounts.POST("/", accountHandler.CreateAccount)
+		accounts.GET("/", accountHandler.GetAccounts)
+		accounts.GET("/:id", accountHandler.GetAccountById)
+		accounts.DELETE("/:id", accountHandler.DeleteAccountById)
+		accounts.PUT("/:id", accountHandler.UpdateAccountById)
+	}
+
+	transfers := router.Group("/api/v1/transfers")
+	{
+		transfers.POST("/", middleware.DBTransactionMiddleware(db), accountHandler.SaveTransfer)
 	}
 	server.router = router
 }

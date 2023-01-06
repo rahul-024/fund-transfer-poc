@@ -13,13 +13,15 @@ type accountRepository struct {
 }
 
 type AccountRepository interface {
-	Save(models.Account) (models.Account, error)
+	SaveAccount(models.Account) (models.Account, error)
 	GetAll(pageId int, pageSize int) ([]models.Account, error)
 	GetAccountById(id int) (models.Account, error)
 	DeleteAccountById(id int) error
 	UpdateAccountById(models.Account, models.Account) (models.Account, error)
-	IncrementMoney(uint, float64) error
-	DecrementMoney(uint, float64) error
+	SaveTransfer(*models.Transfer) (models.Transfer, error)
+	SaveEntry(*models.Entry) error
+	IncrementBalance(int, float64) error
+	DecrementBalance(int, float64) error
 	WithTrx(*gorm.DB) accountRepository
 }
 
@@ -29,7 +31,7 @@ func NewAccountRepository(db *gorm.DB) AccountRepository {
 	}
 }
 
-func (a accountRepository) Save(account models.Account) (models.Account, error) {
+func (a accountRepository) SaveAccount(account models.Account) (models.Account, error) {
 	logger.Log.Info("In func() Save :: REPO LAYER")
 	err := a.DB.Create(&account).Error
 	return account, err
@@ -64,6 +66,29 @@ func (a accountRepository) UpdateAccountById(originalAccount models.Account, cha
 	return changedAccount, err
 }
 
+func (a accountRepository) SaveTransfer(transfer *models.Transfer) (models.Transfer, error) {
+	logger.Log.Info("In func() SaveTransfer :: REPO LAYER")
+	err := a.DB.Create(&transfer).Error
+	return *transfer, err
+}
+
+func (a accountRepository) SaveEntry(entry *models.Entry) error {
+	logger.Log.Info("In func() SaveEntry :: REPO LAYER")
+	err := a.DB.Create(&entry).Error
+	return err
+}
+
+func (a accountRepository) IncrementBalance(receiver int, amount float64) error {
+	logger.Log.Info("In func() IncrementBalance :: REPO LAYER")
+	return a.DB.Model(&models.Account{}).Where("id=?", receiver).Update("balance", gorm.Expr("balance + ?", amount)).Error
+}
+
+func (a accountRepository) DecrementBalance(giver int, amount float64) error {
+	logger.Log.Info("In func() DecrementBalance :: REPO LAYER")
+	return errors.New("something")
+	//return a.DB.Model(&models.Account{}).Where("id=?", giver).Update("balance", gorm.Expr("balance - ?", amount)).Error
+}
+
 func (a accountRepository) WithTrx(trxHandle *gorm.DB) accountRepository {
 	if trxHandle == nil {
 		logger.Log.Info("Transaction Database not found")
@@ -71,15 +96,4 @@ func (a accountRepository) WithTrx(trxHandle *gorm.DB) accountRepository {
 	}
 	a.DB = trxHandle
 	return a
-}
-
-func (a accountRepository) IncrementMoney(receiver uint, amount float64) error {
-	logger.Log.Info("[UserRepository]...Increment Money")
-	return a.DB.Model(&models.Account{}).Where("id=?", receiver).Update("wallet", gorm.Expr("wallet + ?", amount)).Error
-}
-
-func (a accountRepository) DecrementMoney(giver uint, amount float64) error {
-	logger.Log.Info("[UserRepository]...Decrement Money")
-	return errors.New("something")
-	//return u.DB.Model(&model.User{}).Where("id=?", giver).Update("wallet", gorm.Expr("wallet - ?", amount)).Error
 }
