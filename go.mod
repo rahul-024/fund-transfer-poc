@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/devfeel/mapper v0.7.10
 	github.com/fsnotify/fsnotify v1.6.0
+	github.com/golang/mock v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.28.0
 	github.com/sirupsen/logrus v1.9.0
