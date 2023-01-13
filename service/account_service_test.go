@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/rahul-024/fund-transfer-poc/logger"
 	mock "github.com/rahul-024/fund-transfer-poc/mocks"
+
 	"github.com/rahul-024/fund-transfer-poc/models"
 	"github.com/rahul-024/fund-transfer-poc/models/request"
 	"github.com/rahul-024/fund-transfer-poc/repository"

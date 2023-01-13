@@ -32,7 +32,7 @@ func NewAccountRepository(db *gorm.DB) AccountRepository {
 }
 
 func (a AccountRepositoryImpl) SaveAccount(account models.Account) (models.Account, error) {
-	logger.Log.Info("In func() Save :: REPO LAYER")
+	logger.Log.Info("In func() SaveAccount :: REPO LAYER")
 	err := a.DB.Create(&account).Error
 	return account, err
 }
@@ -90,6 +90,7 @@ func (a AccountRepositoryImpl) DecrementBalance(giver int, amount float64) error
 }
 
 func (a AccountRepositoryImpl) WithTrx(trxHandle *gorm.DB) AccountRepositoryImpl {
+	logger.Log.Info("In func() WithTrx :: REPO LAYER")
 	if trxHandle == nil {
 		logger.Log.Info("Transaction Database not found")
 		return a
