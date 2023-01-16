@@ -16,6 +16,16 @@ import (
 	"gorm.io/gorm"
 )
 
+var gdb *gorm.DB
+var mock sqlmock.Sqlmock
+
+func mockDbConnection() (*gorm.DB, sqlmock.Sqlmock) {
+	var db *sql.DB
+	db, mock, _ := sqlmock.New()
+	gdb, _ = gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{})
+	return gdb, mock
+}
+
 func TestSaveAccount(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	mockLogger := mockI.NewMockLogger(mockCtrl)
@@ -28,11 +38,7 @@ func TestSaveAccount(t *testing.T) {
 		Balance:   24.0,
 		CreatedAt: time.Now(),
 	}
-
-	var db *sql.DB
-	var mock sqlmock.Sqlmock
-	db, mock, _ = sqlmock.New()
-	gdb, _ := gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{})
+	gdb, mock = mockDbConnection()
 	accountRepositoryImpl := repository.NewAccountRepository(gdb)
 	const sqlInsert = `
 					INSERT INTO "accounts" ("currency","owner","balance","created_at") 
