@@ -27,6 +27,7 @@ pipeline {
         stage("Unit Test") {
             steps {
                 echo 'UNIT TEST EXECUTION STARTED'
+                sh 'make dep'
                 sh 'make unit-tests'
             }
         }

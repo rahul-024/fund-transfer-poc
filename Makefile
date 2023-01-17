@@ -5,6 +5,10 @@ all: clean get-deps build test
 
 version := "0.0.1"
 
+dep:
+	go install github.com/axw/gocov/gocov@latest
+	go install github.com/AlekSi/gocov-xml@latest
+
 unit-tests:
 	mkdir -p bin
 	gocov test ./... -p 1 | gocov-xml > bin/coverage.xml
