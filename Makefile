@@ -6,6 +6,7 @@ all: clean get-deps build test
 version := "0.0.1"
 
 unit-tests:
+	mkdir -p bin
 	gocov test ./... -p 1 | gocov-xml > bin/coverage.xml
 
 build:
