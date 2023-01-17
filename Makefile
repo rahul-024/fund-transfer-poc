@@ -6,15 +6,15 @@ all: clean get-deps build test
 version := "0.0.1"
 
 unit-tests:
-	go test ./...
+	gocov test ./... -p 1 | gocov-xml > bin/coverage.xml
 
 build:
 	mkdir -p bin
 	go build -o bin/service-sonar main.go
 
 test: build
-	go test -short -coverprofile=bin/cov.out `go list ./... | grep -v vendor/`
-	go tool cover -func=bin/cov.out
+	go test ./... -coverprofile bin/coverage.out
+	go tool cover -func=bin/coverage.out
 
 clean:
 	rm -rf ./bin
