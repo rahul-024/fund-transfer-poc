@@ -32,7 +32,7 @@ pipeline {
             }
         }
     
-        stage("Build") {
+        stage("Docker Build") {
             steps {
                 echo 'BUILD EXECUTION STARTED'
                 sh 'go version'
