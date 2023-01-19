@@ -39,7 +39,7 @@ func (a AccountRepositoryImpl) SaveAccount(account models.Account) (models.Accou
 
 func (a AccountRepositoryImpl) GetAll(pageId int, pageSize int) (accounts []models.Account, err error) {
 	logger.Log.Info("In func() GetAll :: REPO LAYER")
-	err = a.DB.Limit(pageSize).Offset((pageId - 1) * pageSize).Find(&accounts).Error
+	err = a.DB.Limit(pageSize).Offset(pageId).Find(&accounts).Error
 	return accounts, err
 }
 

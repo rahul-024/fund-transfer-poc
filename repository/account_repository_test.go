@@ -40,16 +40,151 @@ func TestSaveAccount(t *testing.T) {
 	}
 	gdb, mock = mockDbConnection()
 	accountRepositoryImpl := repository.NewAccountRepository(gdb)
-	const sqlInsert = `
-					INSERT INTO "accounts" ("currency","owner","balance","created_at") 
+	const sqlInsertAccount = `INSERT INTO "accounts" ("currency","owner","balance","created_at") 
 						VALUES ($1,$2,$3,$4) RETURNING "id"`
 	const newId = 1
 	mock.ExpectBegin() // start transaction
-	mock.ExpectQuery(regexp.QuoteMeta(sqlInsert)).
+	mock.ExpectQuery(regexp.QuoteMeta(sqlInsertAccount)).
 		WithArgs(account.Currency, account.Owner, account.Balance, account.CreatedAt).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(newId))
 	mock.ExpectCommit() // commit transaction
 	accountRepositoryImpl.SaveAccount(account)
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
+}
+
+func TestGetAll(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() GetAll :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	rows := sqlmock.
+		NewRows([]string{"id", "currency", "owner", "balance", "created_at"}).
+		AddRow(1, "USD", "John", 24, time.Now()).
+		AddRow(2, "EUR", "Mike", 30, time.Now())
+
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+	const sqlSelectFirst5 = `SELECT * FROM "accounts" LIMIT 5 OFFSET 1`
+	mock.ExpectQuery(regexp.QuoteMeta(sqlSelectFirst5)).WillReturnRows(rows)
+	accountRepositoryImpl.GetAll(1, 5)
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
+}
+
+func TestGetAccountById(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() GetAccountById :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	rows := sqlmock.
+		NewRows([]string{"id", "currency", "owner", "balance", "created_at"}).
+		AddRow(1, "USD", "John", 24, time.Now())
+
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+	const sqlSelectByAccountId = `SELECT * FROM "accounts" WHERE id=$1 ORDER BY "accounts"."id" LIMIT 1`
+	mock.ExpectQuery(regexp.QuoteMeta(sqlSelectByAccountId)).
+		WithArgs(1).WillReturnRows(rows)
+	accountRepositoryImpl.GetAccountById(1)
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
+}
+
+func TestDeleteAccountById(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() DeleteAccountById :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+
+	rows := sqlmock.
+		NewRows([]string{"id", "currency", "owner", "balance", "created_at"}).
+		AddRow(1, "USD", "John", 24, time.Now())
+	const sqlSelectByAccountId = `SELECT * FROM "accounts" WHERE id=$1 ORDER BY "accounts"."id" LIMIT 1`
+	mock.ExpectQuery(regexp.QuoteMeta(sqlSelectByAccountId)).
+		WithArgs(1).WillReturnRows(rows)
+
+	const sqlDeleteByAccountId = `DELETE FROM "accounts" WHERE "accounts"."id" = $1`
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(sqlDeleteByAccountId)).WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+	accountRepositoryImpl.DeleteAccountById(1)
+
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
+}
+
+func TestUpdateAccountById(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() UpdateAccountById :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+
+	originalAccount := models.Account{
+		Id:        1,
+		Currency:  "USD",
+		Owner:     "John",
+		Balance:   10.0,
+		CreatedAt: time.Date(2021, time.Month(2), 21, 1, 10, 30, 0, time.UTC),
+	}
+	changedAccount := models.Account{
+		Currency:  "USD",
+		Owner:     "John",
+		Balance:   24.0,
+		CreatedAt: time.Date(2021, time.Month(2), 21, 1, 10, 30, 0, time.UTC),
+	}
+
+	const sqlUpdateByAccountId = `UPDATE "accounts" SET "currency"=$1,"owner"=$2,"balance"=$3,"created_at"=$4 WHERE "id" = $5`
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(sqlUpdateByAccountId)).
+		WithArgs(changedAccount.Currency, changedAccount.Owner, changedAccount.Balance, originalAccount.CreatedAt, 1).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+	accountRepositoryImpl.UpdateAccountById(originalAccount, changedAccount)
+
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
+}
+
+func TestSaveTransfer(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() SaveTransfer :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+
+	transfer := models.Transfer{
+		FromAccountID: 1,
+		ToAccountID:   2,
+		Amount:        20.0,
+		CreatedAt:     time.Now(),
+	}
+
+	const sqlInsertTransfer = `INSERT INTO "transfers" ("from_account_id","to_account_id","amount","created_at") 
+						VALUES ($1,$2,$3,$4) RETURNING "id"`
+
+	const newId = 1
+	mock.ExpectBegin() // start transaction
+	mock.ExpectQuery(regexp.QuoteMeta(sqlInsertTransfer)).
+		WithArgs(transfer.FromAccountID, transfer.ToAccountID, transfer.Amount, transfer.CreatedAt).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(newId))
+	mock.ExpectCommit() // commit transaction
+	accountRepositoryImpl.SaveTransfer(&transfer)
 	err := mock.ExpectationsWereMet()
 	if err != nil {
 		t.Errorf("Failed to meet expectations, got error: %v", err)

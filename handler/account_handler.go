@@ -195,7 +195,8 @@ func (a accountHandler) UpdateAccountById(ctx *gin.Context) {
 		return
 	}
 
-	updatedAccount := models.Account{Currency: input.Currency, Owner: input.Owner, Balance: input.Balance}
+	updatedAccount := models.Account{Currency: input.Currency, Owner: input.Owner, Balance: input.Balance,
+		CreatedAt: account.CreatedAt}
 	updatedAccount, err = a.accountService.UpdateAccountById(account, updatedAccount)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
