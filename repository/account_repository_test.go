@@ -190,3 +190,34 @@ func TestSaveTransfer(t *testing.T) {
 		t.Errorf("Failed to meet expectations, got error: %v", err)
 	}
 }
+
+func TestSaveEntry(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() SaveEntry :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+
+	entry := models.Entry{
+		AccountID: 1,
+		Amount:    20.0,
+		CreatedAt: time.Now(),
+	}
+
+	const sqlInsertEntry = `INSERT INTO "entries" ("account_id","amount","created_at") 
+						VALUES ($1,$2,$3) RETURNING "id"`
+
+	const newId = 1
+	mock.ExpectBegin() // start transaction
+	mock.ExpectQuery(regexp.QuoteMeta(sqlInsertEntry)).
+		WithArgs(entry.AccountID, entry.Amount, entry.CreatedAt).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(newId))
+	mock.ExpectCommit() // commit transaction
+	accountRepositoryImpl.SaveEntry(&entry)
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
+
+}
