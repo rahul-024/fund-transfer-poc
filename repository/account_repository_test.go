@@ -12,6 +12,7 @@ import (
 	mockI "github.com/rahul-024/fund-transfer-poc/mocks"
 	"github.com/rahul-024/fund-transfer-poc/models"
 	"github.com/rahul-024/fund-transfer-poc/repository"
+	"gopkg.in/go-playground/assert.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -277,4 +278,20 @@ func TestDecrementBalance(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to meet expectations, got error: %v", err)
 	}
+}
+
+func TestWithTrx(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() WithTrx :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+	accountRepositoryImpl1 := accountRepositoryImpl.WithTrx(gdb)
+	assert.Equal(t, accountRepositoryImpl, accountRepositoryImpl1)
+
+	mockLogger.EXPECT().Info("In func() WithTrx :: REPO LAYER")
+	mockLogger.EXPECT().Info("Transaction Database not found")
+	accountRepositoryImpl2 := accountRepositoryImpl.WithTrx(nil)
+	assert.Equal(t, accountRepositoryImpl, accountRepositoryImpl2)
 }
