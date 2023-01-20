@@ -1,4 +1,4 @@
-package controller
+package handler
 
 import (
 	"net/http"
@@ -64,7 +64,7 @@ func (a accountHandler) CreateAccount(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error while saving user"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": account})
+	c.JSON(http.StatusCreated, gin.H{"data": account})
 }
 
 type getAccountsRequest struct {
