@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/rahul-024/fund-transfer-poc/logger"
 	"github.com/rahul-024/fund-transfer-poc/models"
 	"gorm.io/gorm"
@@ -85,8 +83,8 @@ func (a AccountRepositoryImpl) IncrementBalance(receiver int, amount float64) er
 
 func (a AccountRepositoryImpl) DecrementBalance(giver int, amount float64) error {
 	logger.Log.Info("In func() DecrementBalance :: REPO LAYER")
-	return errors.New("something")
-	//return a.DB.Model(&models.Account{}).Where("id=?", giver).Update("balance", gorm.Expr("balance - ?", amount)).Error
+	//return errors.New("something")
+	return a.DB.Model(&models.Account{}).Where("id=?", giver).Update("balance", gorm.Expr("balance - ?", amount)).Error
 }
 
 func (a AccountRepositoryImpl) WithTrx(trxHandle *gorm.DB) AccountRepositoryImpl {

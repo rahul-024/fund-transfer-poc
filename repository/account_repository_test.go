@@ -219,5 +219,62 @@ func TestSaveEntry(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to meet expectations, got error: %v", err)
 	}
+}
 
+func TestIncrementBalance(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() IncrementBalance :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+
+	account := models.Account{
+		Id:        2,
+		Currency:  "USD",
+		Owner:     "John",
+		Balance:   10.0,
+		CreatedAt: time.Date(2021, time.Month(2), 21, 1, 10, 30, 0, time.UTC),
+	}
+
+	const sqlIncrementBalByAccountId = `UPDATE "accounts" SET "balance"=balance + $1 WHERE id=$2`
+	mock.ExpectBegin() // start transaction
+	mock.ExpectExec(regexp.QuoteMeta(sqlIncrementBalByAccountId)).
+		WithArgs(14.0, account.Id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit() // commit transaction
+	accountRepositoryImpl.IncrementBalance(2, 14.0)
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
+}
+
+func TestDecrementBalance(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	mockLogger := mockI.NewMockLogger(mockCtrl)
+	logger.SetLogger(mockLogger)
+	mockLogger.EXPECT().Info("In func() DecrementBalance :: REPO LAYER")
+	gdb, mock = mockDbConnection()
+	accountRepositoryImpl := repository.NewAccountRepository(gdb)
+
+	account := models.Account{
+		Id:        1,
+		Currency:  "USD",
+		Owner:     "John",
+		Balance:   24.0,
+		CreatedAt: time.Date(2021, time.Month(2), 21, 1, 10, 30, 0, time.UTC),
+	}
+
+	const sqlIncrementBalByAccountId = `UPDATE "accounts" SET "balance"=balance - $1 WHERE id=$2`
+	mock.ExpectBegin() // start transaction
+	mock.ExpectExec(regexp.QuoteMeta(sqlIncrementBalByAccountId)).
+		WithArgs(10.0, account.Id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit() // commit transaction
+	accountRepositoryImpl.DecrementBalance(1, 10.0)
+	err := mock.ExpectationsWereMet()
+	if err != nil {
+		t.Errorf("Failed to meet expectations, got error: %v", err)
+	}
 }
