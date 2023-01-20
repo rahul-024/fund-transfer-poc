@@ -123,6 +123,13 @@ func TestDeleteAccountById(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to meet expectations, got error: %v", err)
 	}
+
+	mockLogger.EXPECT().Info("In func() DeleteAccountById :: REPO LAYER")
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(sqlDeleteByAccountId)).WithArgs(2)
+	mock.ExpectCommit()
+	err = accountRepositoryImpl.DeleteAccountById(2)
+	assert.NotEqual(t, err, nil)
 }
 
 func TestUpdateAccountById(t *testing.T) {
